@@ -151,4 +151,6 @@ thirukkural_semantic_search_engine/
 ---
 
 ## 📜 License
-Add your preferred open-source license (e.g., MIT) in a `LICENSE` file.
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+You may not use the material for commercial purposes. See the [LICENSE](LICENSE) file for details.
+
