@@ -1,0 +1,4 @@
+# This file stores secrets for local development.
+
+# Dummy file that shows the structure of .env file
+GEMINI_API_KEY="your_gemini_api_key"
