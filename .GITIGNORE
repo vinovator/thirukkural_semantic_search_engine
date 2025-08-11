@@ -8,3 +8,5 @@ venv/
 
 # Ignore the local Chroma database
 chromadb/
+
+.DS_Store
