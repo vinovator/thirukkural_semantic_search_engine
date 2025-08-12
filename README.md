@@ -141,7 +141,6 @@ thirukkural_semantic_search_engine/
 ---
 
 ## 🔮 Roadmap / Future Enhancements
-- **Show Paal & Adhikaram:** Display the Part and Chapter for each Kural.
 - **Tamil Query Support:** Accept Tamil queries using a multilingual embedding model.
 - **Filter by Section:** Dropdowns to filter by Paal/Adhikaram.
 - **“Random Kural” Button:** Discover a random verse.
