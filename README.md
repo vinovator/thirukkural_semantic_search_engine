@@ -103,26 +103,30 @@ Streamlit will open the app in your browser. If you selected the local model, en
 ## 📂 Project Structure
 ```text
 thirukkural_semantic_search_engine/
-├── .env                     # Your API keys (excluded from git)
-├── .gitignore               # Git ignore rules
-├── app.py                   # Streamlit app (UI)
-├── embed_data.py            # One-time script to build vector DB
-├── requirements.txt         # Python dependencies
+├── .env                       # Your API keys (excluded from git)
+├── .gitignore                 # Git ignore rules
+├── README.md                  # Project docs
+├── app.py                     # Streamlit app (UI)
+├── embed_data.py              # One-time script to build vector DB
+├── requirements.txt           # Python dependencies
 ├── data/
-│   └── thirukkural_data.json  # Source dataset
-├── chromadb/                # Local vector database (auto-created)
-├── img/                     # Images (optional; screenshots/diagrams)
+│   └── thirukkural_data.json  # Source dataset (post-transform)
+├── chromadb/                  # Local vector database (auto-created)
+├── img/                       # Images (optional; screenshots/diagrams)
+├── transform/                 # One-time data preparation utilities
+│   ├── merge_kural_data.py    # Script used to Merge/clean raw Kural files 
+│   └── json/                  # place raw json files here before running the merge script
 └── src/
     ├── __init__.py
-    ├── config.py            # Central config + LLM master switch
-    ├── llm_services.py      # All LLM calls live here
-    └── search_logic.py      # Embedding + vector search pipeline
+    ├── config.py              # Central config + LLM master switch
+    ├── llm_services.py        # All LLM calls live here
+    └── search_logic.py        # Embedding + vector search pipeline
 ```
 
 ---
 
 ## 🤝 Acknowledgements
-- The `thirukkural_data.json` dataset is sourced from the **Thirukkural API** repository by **tk120404** on GitHub. Immense thanks for making this data publicly available.
+- The [`thirukkural_data.json`] dataset is sourced from the [**Thirukkural API**](https://github.com/tk120404/thirukkural) repository by **tk120404** on GitHub. Immense thanks for making this data publicly available.
 
 ---
 

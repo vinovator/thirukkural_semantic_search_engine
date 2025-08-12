@@ -62,7 +62,7 @@ if st.button("Search for Wisdom", type="primary"):
 
                 st.markdown("---")
                 # We use the standardized keys we created in embed_data.py
-                st.markdown(f"**Kural {metadata.get('kural_no', 'N/A')}**")
+                st.markdown(f"**Kural {metadata.get('kural_no', 'N/A')}** | **Paal (Section):** {metadata.get('paal_name_tamil', 'N/A')} ({metadata.get('paal_translation_english', 'N/A')}) | **Adhikaram (Chapter):** {metadata.get('adhikaram_name_tamil', 'N/A')} ({metadata.get('adhikaram_translation_english', 'N/A')})")
                 st.markdown(f"### {metadata.get('kural_tamil', 'Tamil text not found.')}")
                 st.info(f"**English Explanation:** {document}\n\n**Tamil Explanation:** {metadata.get('kural_tamil_explanation', 'Tamil text not found.')}")
                 #st.info(f"**Tamil Explanation:** {metadata.get('kural_tamil_explanation', 'Tamil text not found.')}")
