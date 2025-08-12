@@ -126,7 +126,7 @@ thirukkural_semantic_search_engine/
 ---
 
 ## 🤝 Acknowledgements
-- The [`thirukkural_data.json`] dataset is sourced from the [**Thirukkural API**](https://github.com/tk120404/thirukkural) repository by **tk120404** on GitHub. Immense thanks for making this data publicly available.
+- The [`thirukkural_data.json`](data/thirukkural_data.json) dataset is sourced from the [**Thirukkural API**](https://github.com/tk120404/thirukkural) repository by **tk120404** on GitHub. Immense thanks for making this data publicly available.
 
 ---
 
