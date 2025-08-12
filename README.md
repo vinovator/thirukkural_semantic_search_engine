@@ -4,6 +4,16 @@ An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the *
 
 ---
 
+## 🖼️ App Preview
+
+![Homepage](img/homepage.png)
+*Homepage of the Thirukkural Semantic Search Engine*
+
+![Semantic Search](img/semantic_search.png)
+*Example of a semantic search result*
+
+---
+
 ## 🔗 Quick Links
 - **Run locally:** `streamlit run app.py`
 - **One-time setup:** `python embed_data.py` to build the vector DB
