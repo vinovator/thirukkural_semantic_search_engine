@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file into the environment
 load_dotenv()
 
+# ---------- Runtime mode ----------
+# Set RUN_ENV=spaces in Hugging Face Spaces (Settings → Variables & secrets)
+RUN_ENV: str = os.getenv("RUN_ENV", "local").strip().lower()
+IS_SPACES: bool = RUN_ENV == "spaces"
+
 # --- LLM Services Configuration ---
 # Define the available LLM services
 LLM_GEMINI = "Google Gemini"
