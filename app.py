@@ -1,72 +1,84 @@
+# app.py
 import streamlit as st
-from sentence_transformers import SentenceTransformer
-
-from src.config import EMBEDDING_MODEL, GEMINI_API_KEY, SELECTED_LLM, LLM_GEMINI, LLM_LOCAL_LLAMA3
-from src.search_logic import get_db_collection, semantic_search
-from src.llm_services import get_relevance_explanation
-
-@st.cache_resource
-def load_resources():
-    """Loads the search model and gets the database collection."""
-    model = SentenceTransformer(EMBEDDING_MODEL)
-    collection = get_db_collection()
-    return model, collection
+from src.config import APP_TITLE, ABOUT_TEXT, CONTACT_TEXT
+from src.search_logic import load_search_artifacts, semantic_search
+from src.llm_services import load_llm_model, get_relevance_explanation
 
 # --- Page Config ---
+# This is retained from your original code.
 st.set_page_config(page_title="Thirukkural Semantic Search", page_icon="📜", layout="wide")
 
-# --- Load Resources ---
-search_model, db_collection = load_resources()
-
-# --- Sidebar ---
-with st.sidebar:
-    st.image("img/logo.png", width=100) # A simple logo
-    st.title("About")
-    st.markdown("""
-        This app uses AI to find the most relevant Thirukkural verses for any topic you provide. It performs a semantic search against the English explanations and uses a Large Language Model (LLM) to explain the relevance.
-    """)
-    
-    st.markdown("---")
-
-    with st.expander("⚙️ Configuration", expanded=True):
-        st.info(f"Using model: **{SELECTED_LLM}**")
-        # Only show API key status if Gemini is the selected model
-        if SELECTED_LLM == LLM_GEMINI:
-            if GEMINI_API_KEY:
-                st.success("Google API Key loaded.", icon="✅")
-            else:
-                st.error("Google API Key not found.", icon="🚨")
+# --- Load Resources (done once and cached for performance) ---
+search_model, faiss_index, metadata_list = load_search_artifacts()
+llm = load_llm_model()
 
 # --- Main UI ---
+# The main title and subheader from your original UI are used here.
 st.title("Thirukkural Semantic Search Engine 📜")
 st.subheader("There's a kural for that!")
-st.markdown("Discover the timeless wisdom of Thirukkural that resonates with any concept.")
 
-query = st.text_input("Enter a theme or topic in English that you want to explore in Thirukkural:", placeholder="e.g., 'the importance of time management'")
+# We use tabs as requested to create the "About" and "Contact" sections.
+tab_search, tab_about, tab_contact = st.tabs(["🔍 Search", "ℹ️ About", "📧 Contact"])
 
-if st.button("Search for Wisdom", type="primary"):
-    if not query:
-        st.warning("Please enter a query to search.")
-    elif SELECTED_LLM == LLM_GEMINI and not GEMINI_API_KEY:
-        st.error("Cannot search. The Google API Key is missing or invalid.")
-    else:
-        results = semantic_search(query, db_collection, search_model)
+# The primary search functionality is placed in the first tab.
+with tab_search:
+    st.markdown("Discover the timeless wisdom of Thirukkural that resonates with any concept.")
+    
+    # The text input and button are preserved.
+    query = st.text_input(
+        "Enter a theme or topic in English that you want to explore in Thirukkural:",
+        placeholder="e.g., 'the importance of time management'"
+    )
 
-        st.subheader("Top 3 Relevant Kurals:")
-        if not results['ids'][0]:
-            st.info("No relevant Kurals were found for your query.")
+    if st.button("Search for Wisdom", type="primary"):
+        if not query:
+            st.warning("Please enter a query to search.")
         else:
-            for metadata, document in zip(results['metadatas'][0], results['documents'][0]):
-                with st.spinner(f"Asking {SELECTED_LLM} for its interpretation..."):
-                    relevance = get_relevance_explanation(query, document)
+            with st.spinner("Searching for the most relevant verses..."):
+                results = semantic_search(query, search_model, faiss_index, metadata_list)
+            
+            # The results header is retained.
+            st.subheader("Top 3 Relevant Kurals:")
+            if not results:
+                st.info("No relevant Kurals were found for your query.")
+            else:
+                # The loop for displaying results preserves your original structure.
+                for kural_data in results:
+                    st.markdown("---")
+                    
+                    # The detailed header format is retained.
+                    header = (
+                        f"**Kural {kural_data.get('kural_no', 'N/A')}** | "
+                        f"**Paal:** {kural_data.get('paal_name_tamil', 'N/A')} ({kural_data.get('paal_translation_english', 'N/A')}) | "
+                        f"**Adhikaram:** {kural_data.get('adhikaram_name_tamil', 'N/A')} ({kural_data.get('adhikaram_translation_english', 'N/A')})"
+                    )
+                    st.markdown(header)
+                    
+                    # The Tamil Kural is displayed as a sub-headline.
+                    st.markdown(f"### {kural_data.get('kural_tamil', 'Tamil text not found.')}")
+                    
+                    # An expander is used to keep the UI tidy, containing the explanations.
+                    with st.expander("Show Explanations"):
+                        st.info(f"**English Explanation:** {kural_data.get('kural_english_explanation', '')}\n\n"
+                                f"**Tamil Explanation:** {kural_data.get('kural_tamil_explanation', '')}")
 
-                st.markdown("---")
-                # We use the standardized keys we created in embed_data.py
-                st.markdown(f"**Kural {metadata.get('kural_no', 'N/A')}** | **Paal (Section):** {metadata.get('paal_name_tamil', 'N/A')} ({metadata.get('paal_translation_english', 'N/A')}) | **Adhikaram (Chapter):** {metadata.get('adhikaram_name_tamil', 'N/A')} ({metadata.get('adhikaram_translation_english', 'N/A')})")
-                st.markdown(f"### {metadata.get('kural_tamil', 'Tamil text not found.')}")
-                st.info(f"**English Explanation:** {document}\n\n**Tamil Explanation:** {metadata.get('kural_tamil_explanation', 'Tamil text not found.')}")
-                #st.info(f"**Tamil Explanation:** {metadata.get('kural_tamil_explanation', 'Tamil text not found.')}")
-                if "Error:" not in relevance:
-                    st.success(f"**Relevance Analysis:** {relevance}")
-                else:
-                    st.error(relevance)
+                    # The spinner and relevance analysis display are retained.
+                    with st.spinner("Analyzing relevance with AI..."):
+                        relevance = get_relevance_explanation(query, kural_data.get('kural_english_explanation', ''), llm)
+                    
+                    if "not available" in relevance:
+                         st.warning(f"💬 **Relevance Analysis:** {relevance}")
+                    else:
+                         st.success(f"💬 **Relevance Analysis:** {relevance}")
+
+# The "About" tab contains the content from your original sidebar.
+with tab_about:
+    st.subheader("About This App")
+    st.image("img/logo.png", width=150) # The logo is retained here.
+    st.markdown(ABOUT_TEXT)
+
+
+# The "Contact" tab uses the new text from your config.
+with tab_contact:
+    st.subheader("Get In Touch")
+    st.markdown(CONTACT_TEXT)
