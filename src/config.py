@@ -23,10 +23,10 @@ LLM_FILENAME = "qwen2-1_5b-instruct-q4_k_m.gguf"
 APP_TITLE = os.getenv("APP_TITLE", "There's a kural for that! - Thirukkural Semantic Search")
 ABOUT_TEXT = os.getenv(
     "ABOUT_TEXT",
-    "An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the Thirukkural.\n\n"
-    "Enter any topic or natural-language query in English and the app surfaces the most semantically relevant Kurals — with the original Tamil, translations, and an AI explanation of why each verse matches your query."
+    "An intelligent, AI-powered app to explore the timeless wisdom of the Thirukkural.\n\n"
+    "Find the most relevant Thirukkural verses for any theme or topic you provide. It performs semantic search and uses LLM to explain the relevance of each verse to your query.\n"
 )
 CONTACT_TEXT = os.getenv(
     "CONTACT_TEXT",
-    "Contact: hal.vinoth@yahoo.com • LinkedIn: https://www.linkedin.com/in/vinothhaldorai/"
+    "hal.vinoth@yahoo.com | [Github](https://github.com/vinovator/thirukkural_semantic_search_engine)"
 )

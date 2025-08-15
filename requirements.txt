@@ -5,3 +5,4 @@ sentence-transformers
 faiss-cpu
 llama-cpp-python
 huggingface-hub
+numpy<2.0

@@ -14,7 +14,7 @@ def main():
         thirukkural_data = json.load(file)
 
     df = pd.DataFrame(thirukkural_data['kural'])
-    df['kural_tamil'] = df['Line1'] + " " + df['Line2']
+    # df['kural_tamil'] = df['Line1'] + " " + df['Line2']
     df.rename(columns={'Number': 'kural_no',
                        'explanation': 'kural_english_explanation',
                        'mv': 'kural_tamil_explanation'}, inplace=True)
