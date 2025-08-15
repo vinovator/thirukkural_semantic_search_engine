@@ -1,62 +1,72 @@
-#embed_data.py
-#This is where we adapt to the JSON format. The script opens the JSON, extracts the kural list and creates a clean DataFrame.
-#We will combine Line1 and Line2 and rename columns like Number and explanation to a standard format that rest of our app can use.
+# embed_data.py
+# Build read-only FAISS artifacts (Spaces + local fallback).
 
 import json
-import pandas as pd
+from pathlib import Path
+from typing import Dict, Any, List
+
 from sentence_transformers import SentenceTransformer
-from src.search_logic import get_db_collection
-from src.config import DATA_PATH, EMBEDDING_MODEL
+import faiss
 
-def main():
-    # Load the Thirukkural data from the JSON file
-    with open(DATA_PATH, 'r', encoding='utf-8') as file:
-        thirukkural_data = json.load(file)
+from src.config import (
+    DATA_FILE,
+    FAISS_DIR, FAISS_INDEX_PATH, FAISS_META_PATH,
+    EMBEDDING_MODEL, EMBEDDING_DIM,
+)
 
-    # Extract the kural list and create a DataFrame
-    kural_list = thirukkural_data['kural']
-    df = pd.DataFrame(kural_list)
+def _join_tamil(line1: str, line2: str) -> str:
+    return f"{line1.strip()}\n{line2.strip()}"
 
-    # --- Data Transformation ---
-    # Combine Line1 and Line2 into a single column named 'verse'
-    df['kural_tamil'] = df['Line1'] + " " + df['Line2']
+def build_faiss() -> None:
+    # Ensure output dir exists
+    FAISS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Rename columns to standard format
-    df.rename(columns={'Number': 'kural_no', 
-                       'explanation': 'kural_english_explanation',
-                       'mv': 'kural_tamil_explanation'}, inplace=True)
+    # Load dataset
+    data = json.loads(Path(DATA_FILE).read_text(encoding="utf-8"))
+    items: List[Dict[str, Any]] = data["kural"]  
 
-    # Select the document we want to embed for semantic search. The "explanation" column is best fit.
-    documents_to_embed = df["kural_english_explanation"].tolist()
+    # --- Embeddings: English-only from 'explanation' ---
+    texts = [it["explanation"] for it in items]
 
-    # Get the database collection
-    collection = get_db_collection()
-
-    if collection.count() > 0:
-        print("Collection already exists. Skipping embedding process.")
-        return
-    
-    # Initialize the embedding model
-    print(f"Initializing the embedding model: {EMBEDDING_MODEL}")
     model = SentenceTransformer(EMBEDDING_MODEL)
+    embs = model.encode(
+        texts,
+        batch_size=64,
+        show_progress_bar=True,
+        convert_to_numpy=True
+    ).astype("float32")
 
-    # Generate embeddings for the documents
-    print("Generating embeddings for the documents... This may take a while.")
-    embeddings = model.encode(documents_to_embed, show_progress_bar=True)
+    # Cosine similarity via inner product
+    faiss.normalize_L2(embs)
+    index = faiss.IndexFlatIP(EMBEDDING_DIM)
+    index.add(embs)
+    faiss.write_index(index, str(FAISS_INDEX_PATH))
 
-    # We will store the entire record of each kural as metadata in the collection
-    metadatas = df.to_dict(orient='records')
-    ids = [str(i) for i in df.index]
+    # --- Meta: standardized keys for the app/renderer ---
+    meta = []
+    for it in items:
+        meta.append({
+            # Renames you asked for:
+            "kural_no": it["Number"],                                 # Number -> kural_no
+            "kural_english_explanation": it["explanation"],           # explanation -> kural_english_explanation
+            "kural_tamil_explanation": it["mv"],                      # mv -> kural_tamil_explanation
 
-    print("Adding data to the vector database... ")
-    collection.add(
-        embeddings=embeddings.tolist(),
-        documents=documents_to_embed,
-        metadatas=metadatas,
-        ids=ids
+            # Extra fields your UI shows:
+            "kural_tamil": _join_tamil(it["Line1"], it["Line2"]),
+            "paal_name_tamil": it["paal_name_tamil"],
+            "paal_translation_english": it["paal_translation_english"],
+            "adhikaram_name_tamil": it["adhikaram_name_tamil"],
+            "adhikaram_translation_english": it["adhikaram_translation_english"],
+        })
+
+    Path(FAISS_META_PATH).write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2),
+        encoding="utf-8"
     )
 
-    print(f"\n Process completed successfully! {collection.count()} records embedded and added to the collection.")
+    print(f"FAISS index: {FAISS_INDEX_PATH}")
+    print(f"FAISS meta : {FAISS_META_PATH}")
+    print(f"Records    : {len(items)}")
 
 if __name__ == "__main__":
-    main()
+    build_faiss()
