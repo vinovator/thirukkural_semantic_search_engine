@@ -1,25 +1,40 @@
 # app.py
 import streamlit as st
-from src.config import APP_TITLE, ABOUT_TEXT, CONTACT_TEXT
+from src.config import APP_TITLE, ABOUT_TEXT, CONTACT_TEXT, LLM_PROVIDER, LLM_PROVIDER_HUGGINGFACE
 from src.search_logic import load_search_artifacts, semantic_search
-from src.llm_services import load_llm_model, get_relevance_explanation
+from src.llm_services import load_hf_model, get_relevance_explanation
 
 # --- Page Config ---
 st.set_page_config(page_title="Thirukkural Semantic Search", page_icon="📜", layout="wide")
 
-# --- Load Resources (done once and cached for performance) ---
-search_model, faiss_index, metadata_list = load_search_artifacts()
-llm = load_llm_model()
+# --- CUSTOM CSS ---
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        width: 350px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# --- Load Resources ---
+search_model, embeddings, metadata_list = load_search_artifacts()
+
+# Conditionally load the Hugging Face model
+model, tokenizer = None, None
+if LLM_PROVIDER == LLM_PROVIDER_HUGGINGFACE:
+    model, tokenizer = load_hf_model()
 
 # --- Sidebar ---
-# The "About" and "Contact" sections are now combined in the sidebar.
 with st.sidebar:
     st.image("img/logo.png", width=120)
     st.header("About This App")
     st.markdown(ABOUT_TEXT)
     st.markdown("---")
     st.header("Contact")
-    st.markdown(CONTACT_TEXT)
+    st.markdown(CONTACT_TEXT, unsafe_allow_html=True)
 
 # --- Main UI ---
 st.title("Thirukkural Semantic Search Engine 📜")
@@ -36,12 +51,16 @@ if st.button("Search for Wisdom", type="primary"):
         st.warning("Please enter a query to search.")
     else:
         with st.spinner("Searching for the most relevant verses..."):
-            results = semantic_search(query, search_model, faiss_index, metadata_list)
+            results = semantic_search(query, search_model, embeddings, metadata_list)
         
         st.subheader("Top 3 Relevant Kurals:")
         if not results:
             st.info("No relevant Kurals were found for your query.")
         else:
+            # --- MODIFIED LOGIC STARTS HERE ---
+            
+            # Step 1: Display all Kurals and create empty placeholders.
+            placeholders = []
             for kural_data in results:
                 st.markdown("---")
                 header = (
@@ -50,20 +69,33 @@ if st.button("Search for Wisdom", type="primary"):
                     f"**Adhikaram:** {kural_data.get('adhikaram_name_tamil', 'N/A')} ({kural_data.get('adhikaram_translation_english', 'N/A')})"
                 )
                 st.markdown(header)
-                #st.markdown(f"### {kural_data.get('kural_tamil', 'Tamil text not found.')}")
+                
                 line1 = kural_data.get('Line1', '')
                 line2 = kural_data.get('Line2', '')
                 st.markdown(f"### {line1}<br>{line2}", unsafe_allow_html=True)
                 
-                # The expander is now set to be expanded by default.
                 with st.expander("Show Explanations", expanded=True):
                     st.info(f"**English Explanation:** {kural_data.get('kural_english_explanation', '')}\n\n"
                             f"**Tamil Explanation:** {kural_data.get('kural_tamil_explanation', '')}")
-
-                with st.spinner("Analyzing relevance with AI..."):
-                    relevance = get_relevance_explanation(query, kural_data.get('kural_english_explanation', ''), llm)
                 
+                placeholders.append(st.empty())
+
+            # Step 2: Now, fill each placeholder with a spinner while generating its explanation.
+            for i, kural_data in enumerate(results):
+                # Use the placeholder as a container for the spinner
+                with placeholders[i]:
+                    with st.spinner("💬 Analyzing relevance with AI..."):
+                        relevance = get_relevance_explanation(
+                            query, 
+                            kural_data.get('kural_english_explanation', ''),
+                            model,
+                            tokenizer
+                        )
+                
+                # After the spinner is done, fill the placeholder with the final result
                 if "not available" in relevance:
-                     st.warning(f"💬 **Relevance Analysis:** {relevance}")
+                     placeholders[i].warning(f"💬 **Relevance Analysis:** {relevance}")
                 else:
-                     st.success(f"💬 **Relevance Analysis:** {relevance}")
+                     placeholders[i].success(f"💬 **Relevance Analysis:** {relevance}")
+else:
+    st.info("Enter a query above and click 'Search for Wisdom' to begin.")

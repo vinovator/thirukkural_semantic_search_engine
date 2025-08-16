@@ -2,7 +2,9 @@
 pandas
 streamlit
 sentence-transformers
-faiss-cpu
-llama-cpp-python
+scikit-learn
 huggingface-hub
-numpy<2.0
+transformers
+torch
+accelerate
+ollama
