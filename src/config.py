@@ -35,7 +35,7 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", default_provider)
 HF_MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 # Configuration for Ollama model
-OLLAMA_MODEL_ID = "llama3"
+OLLAMA_MODEL_ID = "phi3" # was "llama3"
 
 # --- UI Text Configuration ---
 APP_TITLE = os.getenv("APP_TITLE", "There's a kural for that! - Thirukkural Semantic Search")

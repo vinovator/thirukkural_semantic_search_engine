@@ -27,13 +27,18 @@ def get_relevance_explanation(query: str, kural_explanation: str, model=None, to
     """
     Generates an explanation by dispatching to the configured LLM provider.
     """
-    prompt = f"""
-    Analyze the connection between the user's query and the provided Thirukkural explanation.
-    **User's Query:** {query}
-    **Thirukkural Explanation:** {kural_explanation}
-    **Your Task:** In 2-3 concise sentences, explain how the Thirukkural verse is semantically relevant to the user's query.
-    """
+    # --- PROMPT REFINEMENT ---
+    system_prompt = """You are an insightful analyst of philosophy and literature. Your task is to explain the connection between a user's query and a verse from the ancient Tamil text, the Thirukkural."""
+    
+    user_prompt = f"""
+    Analyze the following.
+    
+    **Query:** "{query}"
+    **Thirukkural Verse Explanation:** "{kural_explanation}"
 
+    Now, in 2-3 concise and natural sentences, provide your analysis of the semantic connection:
+    """
+    
     # --- OLLAMA LOGIC ---
     if LLM_PROVIDER == LLM_PROVIDER_OLLAMA:
         try:
@@ -41,11 +46,15 @@ def get_relevance_explanation(query: str, kural_explanation: str, model=None, to
             response = ollama.chat(
                 model=OLLAMA_MODEL_ID,
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
                 ]
             )
-            return response['message']['content'].strip()
+            # --- Clean-up Step ---
+            # Ensures we only return the generated text
+            clean_response = response['message']['content'].split("semantic connection:")[-1].strip()
+            return clean_response
+
         except Exception as e:
             logging.error(f"Error with Ollama: {e}")
             return "Explanation not available: Could not connect to Ollama."
@@ -55,18 +64,22 @@ def get_relevance_explanation(query: str, kural_explanation: str, model=None, to
         if not model or not tokenizer:
             return "Explanation not available: Hugging Face LLM failed to load."
 
-        system_prompt = "You are a helpful assistant who analyzes ancient texts."
         chat_prompt = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Analyze the connection between this query and this text.\n\n**User's Query:** {query}\n\n**Thirukkural Explanation:** {kural_explanation}"}
+            {"role": "user", "content": user_prompt}
         ]
         input_ids = tokenizer.apply_chat_template(chat_prompt, add_generation_prompt=True, return_tensors="pt")
 
         try:
             logging.info(f"Getting explanation from Hugging Face model: {HF_MODEL_ID}")
             outputs = model.generate(input_ids, max_new_tokens=150, temperature=0.3, do_sample=True)
-            response = tokenizer.decode(outputs[0][input_ids.shape[-1]:], skip_special_tokens=True)
-            return response.strip()
+            response_text = tokenizer.decode(outputs[0][input_ids.shape[-1]:], skip_special_tokens=True)
+            
+            # --- Clean-up Step ---
+            # Ensures we only return the generated text
+            clean_response = response_text.split("semantic connection:")[-1].strip()
+            return clean_response
+            
         except Exception as e:
             logging.error(f"Error during LLM inference: {e}")
             return "Explanation not available due to a technical issue."
