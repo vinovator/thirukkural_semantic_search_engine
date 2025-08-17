@@ -8,3 +8,5 @@ transformers
 torch
 accelerate
 ollama
+# For Streamlit App
+google-generativeai

@@ -4,7 +4,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import logging
 import ollama
-from src.config import LLM_PROVIDER, HF_MODEL_ID, OLLAMA_MODEL_ID, LLM_PROVIDER_HUGGINGFACE, LLM_PROVIDER_OLLAMA
+import google.generativeai as genai
+from src.config import LLM_PROVIDER, HF_MODEL_ID, OLLAMA_MODEL_ID, GEMINI_MODEL_ID, GEMINI_API_KEY, LLM_PROVIDER_HUGGINGFACE, LLM_PROVIDER_OLLAMA, LLM_PROVIDER_GEMINI
 
 logging.basicConfig(level=logging.INFO)
 
@@ -83,6 +84,23 @@ def get_relevance_explanation(query: str, kural_explanation: str, model=None, to
         except Exception as e:
             logging.error(f"Error during LLM inference: {e}")
             return "Explanation not available due to a technical issue."
+        
+    # --- NEW GEMINI API LOGIC ---
+    elif LLM_PROVIDER == LLM_PROVIDER_GEMINI:
+        if not GEMINI_API_KEY:
+            return "Explanation not available: The GEMINI_API_KEY is not configured."
+        try:
+            logging.info(f"Getting explanation from Gemini model: {GEMINI_MODEL_ID}")
+            genai.configure(api_key=GEMINI_API_KEY)
+            gemini_model = genai.GenerativeModel(GEMINI_MODEL_ID)
+            # The Gemini API handles the system prompt differently, so we combine them
+            full_prompt = f"{system_prompt}\n\n{user_prompt}"
+            response = gemini_model.generate_content(full_prompt)
+            return response.text.strip()
+        except Exception as e:
+            logging.error(f"Error with Gemini API: {e}")
+            return "Explanation not available due to an API error."
+
 
     else:
         return f"Error: Unknown LLM_PROVIDER '{LLM_PROVIDER}' configured."

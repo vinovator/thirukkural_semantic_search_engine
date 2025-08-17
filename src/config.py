@@ -3,7 +3,8 @@ import os
 
 # --- Environment Switch ---
 # Detects if the app is running on Hugging Face Spaces or locally.
-APP_MODE = os.getenv("APP_MODE", "local") 
+APP_MODE = os.getenv("APP_MODE", "local")
+# APP_MODE = os.getenv("APP_MODE", "spaces") 
 
 # --- Path Configuration ---
 # Suggestion 2: Renamed from FAISS_PATH for clarity.
@@ -21,6 +22,7 @@ EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 # Suggestion 1: Implemented the "smart default" logic.
 LLM_PROVIDER_HUGGINGFACE = "huggingface"
 LLM_PROVIDER_OLLAMA = "ollama"
+LLM_PROVIDER_GEMINI = "gemini"
 
 # Determine the default provider based on the environment
 if APP_MODE == "spaces":
@@ -29,13 +31,21 @@ else:  # 'local'
     default_provider = LLM_PROVIDER_OLLAMA
 
 # Set the provider. The default is now environment-aware.
+# For local use, you can change this line directly.
+# For Streamlit Cloud, you will set this as a Secret.
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", default_provider)
 
 # Configuration for Hugging Face model
 HF_MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 # Configuration for Ollama model
-OLLAMA_MODEL_ID = "phi3" # was "llama3"
+#OLLAMA_MODEL_ID = "phi3" # was "llama3"
+OLLAMA_MODEL_ID = "llama3" # was "phi3"
+
+# Google Gemini (for Streamlit Cloud)
+GEMINI_MODEL_ID = "gemini-1.5-flash-latest"
+# This will read the API key from Streamlit's Secrets manager
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # --- UI Text Configuration ---
 APP_TITLE = os.getenv("APP_TITLE", "There's a kural for that! - Thirukkural Semantic Search")
