@@ -39,19 +39,36 @@ Try out **Thirukkural Semantic Search** in action here:
 ---
 
 ## ✨ Features
-- **Semantic Search:** Uses sentence-level embeddings and **NumPy** to calculate cosine similarity, finding meaningfully related Kurals beyond simple keywords.
-- **Dual-Language Display:** Presents the original Tamil verse as a couplet, alongside both Tamil and English explanations.
-- **Self-Contained AI Reasoning:** Utilizes a powerful, locally-run language model (`microsoft/Phi-3-mini`) to provide relevance explanations without needing external APIs or keys.
-- **Cloud-Ready:** Architected for simple, free deployment on platforms like Hugging Face Spaces.
+
+-   **Semantic Search:** Uses sentence-level embeddings to find meaningfully related Kurals beyond simple keywords.
+-   **Dual-Language Display:** Presents the original Tamil verse as a couplet, alongside both Tamil and English explanations.
+-   **Flexible AI Backend:** A key feature of this project is its ability to run in three different modes, allowing you to choose between local performance, self-contained deployment, or a powerful cloud API.
 
 ---
 
+## ⚙️ The Three Configurations
+
+This app can be configured to use one of three different Large Language Models for its "Relevance Explainer" feature.
+
+| Configuration | Use Case | How It Works |
+| :--- | :--- | :--- |
+| **1. Local with Ollama** | 🚀 Maximum performance on your local machine. | Connects to a running Ollama service to use powerful, quantized GGUF models (e.g., Llama 3, Phi-3). |
+| **2. Hugging Face Spaces**| 📦 A self-contained, API-free deployment. | Runs a smaller model (e.g., TinyLlama) directly within the app using the Hugging Face `transformers` library. |
+| **3. Streamlit Cloud** | ☁️ Lightweight, scalable cloud deployment. | Calls the powerful Google Gemini API for explanations. Requires an API key. |
+
+---
+
+
 ## 🛠️ Tech Stack
-- **Language:** Python
-- **Web Framework:** Streamlit
-- **Embeddings:** `sentence-transformers`
-- **Vector Search:** `NumPy` (Cosine Similarity)
-- **LLM:** `microsoft/Phi-3-mini` (via Hugging Face `transformers`)
+
+-   **Language:** Python
+-   **Web Framework:** Streamlit
+-   **Embeddings:** `sentence-transformers`
+-   **Vector Search:** `scikit-learn` (Cosine Similarity)
+-   **LLM Backends (Configurable):**
+    -   Google Gemini API (for Streamlit Cloud)
+    -   Hugging Face `transformers` (for HF Spaces)
+    -   Ollama (for high-performance local use)
 
 ---
 
@@ -87,6 +104,38 @@ python embed_data.py
 ```
 This script reads data/thirukkural_data.json, generates sentence embeddings, and saves them as kural_embeddings.npy and kural_metadata.pkl in the search_artifacts/ directory. You only need to run this once.
 
+
+### 5) Configure the LLM Provider
+This is the most important step. Open 'src/config.py' and choose which mode to run by setting the 'LLM_PROVIDER' variable.
+
+**Setup A: Local with Ollama (Default)**
+1. Install and run Ollama on your machine.
+2. Pull a model: 'ollama run llama3'
+3. In 'src/config.py', ensure the provider is set to 'ollama':
+
+```python
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+```
+
+**Setup B: Local with Hugging Face 'transformers'**
+1. No external software is needed.
+2. In 'src/config.py', change the provider to 'huggingface':
+```python*
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "huggingface")
+```
+*Note: The first time you run this, it will download the model (e.g., TinyLlama), which can take several minutes.*
+
+**Setup C: Local with Gemini API**
+1. Obtain a Google Gemini API key.
+2. In 'src/config.py', change the provider to 'gemini':
+```python
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")
+```
+3. Set the environment variable for your API key in your terminal before running the app:
+```bash
+export GEMINI_API_KEY="AIza..."
+```
+
 ---
 
 ## ▶️ Usage
@@ -97,6 +146,32 @@ This script reads data/thirukkural_data.json, generates sentence embeddings, and
 streamlit run app.py
 ```
 Streamlit will open the app in your browser. If you selected the local model, ensure **Ollama** is running in the background.
+
+---
+
+**☁️ Deployment**
+### Hugging Face Spaces
+1. Create a new Space and link your GitHub repository.
+2. In the Space settings, add one Secret:
+Name: 'LLM_PROVIDER'
+Value: 'huggingface'
+3. You may also need a packages.txt file if you use a library that requires system dependencies.
+
+### Streamlit Community Cloud
+1. Create a new app and link your GitHub repository.
+2. In the app's advanced settings, add two Secrets:
+
+Secret 1:
+
+Name: LLM_PROVIDER
+
+Value: gemini
+
+Secret 2:
+
+Name: GEMINI_API_KEY
+
+Value: AIza... (Your actual Google Gemini API key)
 
 ---
 
