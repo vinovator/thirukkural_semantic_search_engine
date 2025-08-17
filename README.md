@@ -120,7 +120,8 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
 **Setup B: Local with Hugging Face 'transformers'**
 1. No external software is needed.
 2. In 'src/config.py', change the provider to 'huggingface':
-```python*
+
+```python
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "huggingface")
 ```
 *Note: The first time you run this, it will download the model (e.g., TinyLlama), which can take several minutes.*
@@ -128,6 +129,7 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "huggingface")
 **Setup C: Local with Gemini API**
 1. Obtain a Google Gemini API key.
 2. In 'src/config.py', change the provider to 'gemini':
+
 ```python
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")
 ```
