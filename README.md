@@ -4,6 +4,15 @@ An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the *
 
 ---
 
+## 🚀 Live Demo
+
+Our Streamlit app is now live!  
+Try out **Thirukkural Semantic Search** in action here:  
+
+👉 [thereisakuralforthat.streamlit.app](https://thereisakuralforthat.streamlit.app/)
+
+---
+
 ## 🖼️ App Preview
 
 ![Homepage](img/homepage.png)
