@@ -83,7 +83,7 @@ Streamlit will open the app in your browser. If you selected the local model, en
 ---
 
 ## 📂 Project Structure
-
+```text
 thirukkural_semantic_search_engine/
 ├── README.md                  # This file
 ├── app.py                     # Streamlit app (UI)
@@ -100,7 +100,7 @@ thirukkural_semantic_search_engine/
     ├── config.py              # Central configuration
     ├── llm_services.py        # All LLM calls live here
     └── search_logic.py        # Embedding + NumPy search pipeline
-
+```
 ---
 
 ## 🤝 Acknowledgements
