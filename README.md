@@ -161,17 +161,12 @@ Value: 'huggingface'
 1. Create a new app and link your GitHub repository.
 2. In the app's advanced settings, add two Secrets:
 
-Secret 1:
-
-Name: LLM_PROVIDER
-
-Value: gemini
-
-Secret 2:
-
-Name: GEMINI_API_KEY
-
-Value: AIza... (Your actual Google Gemini API key)
+- Secret 1:
+    - Name: LLM_PROVIDER
+    - Value: gemini
+- Secret 2:
+    - Name: GEMINI_API_KEY
+    - Value: AIza... (Your actual Google Gemini API key)
 
 ---
 
