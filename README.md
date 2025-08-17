@@ -14,6 +14,15 @@ An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the *
 
 ---
 
+## 🚀 Live Demo
+
+Our Streamlit app is now live!  
+Try out **Thirukkural Semantic Search** in action here:  
+
+👉 [thereisakuralforthat.streamlit.app](https://thereisakuralforthat.streamlit.app/)
+
+---
+
 ## 🔗 Quick Links
 - **Run the app:** `streamlit run app.py`
 - **One-time setup:** `python embed_data.py` to build the search artifacts
