@@ -15,17 +15,16 @@ An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the *
 ---
 
 ## 🔗 Quick Links
-- **Run locally:** `streamlit run app.py`
-- **One-time setup:** `python embed_data.py` to build the vector DB
-- **Switch LLMs:** Edit `src/config.py` → `SELECTED_LLM`
+- **Run the app:** `streamlit run app.py`
+- **One-time setup:** `python embed_data.py` to build the search artifacts
 
 ---
 
 ## ✨ Features
-- **Semantic Search (Embeddings + Vector DB):** Finds meaningfully related Kurals beyond simple keywords.
-- **Dual-Language Display:** Original Tamil verse plus Tamil/English explanations.
-- **AI Relevance Reasoning:** A configurable LLM explains the match for each result.
-- **Cloud or Local LLM (One-Line Switch):** Toggle between **Google Gemini** and **local Llama 3 (via Ollama)** by changing a single constant in `src/config.py`.
+- **Semantic Search:** Uses sentence-level embeddings and **NumPy** to calculate cosine similarity, finding meaningfully related Kurals beyond simple keywords.
+- **Dual-Language Display:** Presents the original Tamil verse as a couplet, alongside both Tamil and English explanations.
+- **Self-Contained AI Reasoning:** Utilizes a powerful, locally-run language model (`microsoft/Phi-3-mini`) to provide relevance explanations without needing external APIs or keys.
+- **Cloud-Ready:** Architected for simple, free deployment on platforms like Hugging Face Spaces.
 
 ---
 
@@ -33,23 +32,20 @@ An intelligent, AI-powered Streamlit app to explore the timeless wisdom of the *
 - **Language:** Python
 - **Web Framework:** Streamlit
 - **Embeddings:** `sentence-transformers`
-- **Vector Database:** ChromaDB
-- **LLMs (configurable):**
-  - Google Gemini (via `google-generativeai`)
-  - Local **Llama 3** (via **Ollama**)
+- **Vector Search:** `NumPy` (Cosine Similarity)
+- **LLM:** `microsoft/Phi-3-mini` (via Hugging Face `transformers`)
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python **3.8+** (3.10 recommended)
-- (Optional for local LLM) **Ollama** installed: https://ollama.com
+- Python **3.9+**
 - macOS/Linux/Windows supported
 
 ### 1) Clone the repository
 ```bash
-git clone https://github.com/vinovator/thirukkural_semantic_search_engine.git
+git clone [https://github.com/vinovator/thirukkural_semantic_search_engine.git](https://github.com/vinovator/thirukkural_semantic_search_engine.git)
 cd thirukkural_semantic_search_engine
 ```
 
@@ -67,40 +63,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4) (Optional) Set up Google Gemini API key
-Create a file named **`.env`** in the project root:
-```env
-GEMINI_API_KEY="your_google_api_key_here"
-```
-> Tip: You can also export it in your shell instead of a `.env` file.
-
-### 5) (Optional) Prepare local Llama 3 with Ollama
-If you prefer running **fully offline** on your machine:
-```bash
-# Install Ollama if not already installed (see ollama.com)
-# Then pull or run the model to download it once:
-ollama pull llama3
-# or
-ollama run llama3
-```
-
-### 6) One-time: build the vector database
+### 4) One-time: build the search artifacts
 ```bash
 python embed_data.py
 ```
-This reads `data/thirukkural_data.json`, generates embeddings, and stores them under `chromadb/`. You only need to run this once (rerun if you change the dataset or embedding model).
+This script reads data/thirukkural_data.json, generates sentence embeddings, and saves them as kural_embeddings.npy and kural_metadata.pkl in the search_artifacts/ directory. You only need to run this once.
 
 ---
 
 ## ▶️ Usage
 
-### Choose your LLM
-Open **`src/config.py`** and set:
-```python
-SELECTED_LLM = LLM_GEMINI        # Use Google Gemini (cloud)
-# or
-SELECTED_LLM = LLM_LOCAL_LLAMA3  # Use local Llama 3 via Ollama
-```
 
 ### Run the app
 ```bash
@@ -111,27 +83,23 @@ Streamlit will open the app in your browser. If you selected the local model, en
 ---
 
 ## 📂 Project Structure
-```text
+
 thirukkural_semantic_search_engine/
-├── .env                       # Your API keys (excluded from git)
-├── .gitignore                 # Git ignore rules
-├── README.md                  # Project docs
+├── README.md                  # This file
 ├── app.py                     # Streamlit app (UI)
-├── embed_data.py              # One-time script to build vector DB
+├── embed_data.py              # One-time script to build search artifacts
 ├── requirements.txt           # Python dependencies
 ├── data/
-│   └── thirukkural_data.json  # Source dataset (post-transform)
-├── chromadb/                  # Local vector database (auto-created)
-├── img/                       # Images (optional; screenshots/diagrams)
-├── transform/                 # One-time data preparation utilities
-│   ├── merge_kural_data.py    # Script used to Merge/clean raw Kural files 
-│   └── json/                  # place raw json files here before running the merge script
+│   └── thirukkural_data.json  # Source dataset
+├── search_artifacts/          # Stored embeddings and metadata
+│   ├── kural_embeddings.npy
+│   └── kural_metadata.pkl
+├── img/                       # App screenshots/diagrams
 └── src/
     ├── __init__.py
-    ├── config.py              # Central config + LLM master switch
+    ├── config.py              # Central configuration
     ├── llm_services.py        # All LLM calls live here
-    └── search_logic.py        # Embedding + vector search pipeline
-```
+    └── search_logic.py        # Embedding + NumPy search pipeline
 
 ---
 
@@ -151,15 +119,15 @@ thirukkural_semantic_search_engine/
 
 ## 🔐 Privacy & Security Notes
 - No user queries are stored by default. Add logging consciously if needed.
-- Keep secrets out of source control: use `.env`, environment variables, or Streamlit secrets.
+- The app is self-contained and does not require API keys or external network calls after the initial model download.
 
 ---
 
 ## 🧰 Troubleshooting
 - **`ModuleNotFoundError`**: Confirm your virtual env is activated and deps are installed.
-- **No results / empty search**: Ensure you ran `python embed_data.py` and `chromadb/` exists.
-- **Local model fails**: Verify Ollama is installed and `ollama run llama3` works independently.
-- **Gemini errors**: Confirm `GEMINI_API_KEY` is present and valid.
+- **`ImportError: numpy.core.multiarray failed to import`**: Your **`numpy`** version is likely too new. Ensure **`numpy<2.0`** is in your **`requirements.txt`** and reinstall dependencies in a clean virtual environment.
+- No search results: Ensure you have successfully run **`python embed_data.py`** and that the **`search_artifacts/`** directory and its files exist.
+- Slow first load: The initial download and loading of the language model can take a significant amount of time and memory. This is expected.
 
 ---
 
