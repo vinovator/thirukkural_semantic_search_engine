@@ -43,7 +43,9 @@ HF_MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 OLLAMA_MODEL_ID = "llama3" # was "phi3"
 
 # Google Gemini (for Streamlit Cloud)
-GEMINI_MODEL_ID = "gemini-1.5-flash-latest"
+# gemini-2.5-flash is a GA (generally available) model with a long support window,
+# so it won't be retired on short notice like the deprecated 1.5 series was.
+GEMINI_MODEL_ID = "gemini-2.5-flash"
 # This will read the API key from Streamlit's Secrets manager
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 

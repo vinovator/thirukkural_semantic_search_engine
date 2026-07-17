@@ -9,4 +9,4 @@ torch
 accelerate
 ollama
 # For Streamlit App
-google-generativeai
+google-genai
