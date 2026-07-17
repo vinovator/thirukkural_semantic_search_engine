@@ -32,6 +32,7 @@ Try out **Thirukkural Semantic Search** in action here:
 ## ✨ Features
 
 -   **Semantic Search:** Uses sentence-level embeddings to find meaningfully related Kurals beyond simple keywords.
+-   **Two-Stage Retrieval:** A fast bi-encoder retrieves candidate Kurals, then a cross-encoder **re-ranker** re-scores them for precision. A relevance threshold means off-topic queries honestly return *no results* instead of forcing weak matches.
 -   **Dual-Language Display:** Presents the original Tamil verse as a couplet, alongside both Tamil and English explanations.
 -   **Flexible AI Backend:** A key feature of this project is its ability to run in three different modes, allowing you to choose between local performance, self-contained deployment, or a powerful cloud API.
 
@@ -54,8 +55,9 @@ This app can be configured to use one of three different Large Language Models f
 
 -   **Language:** Python
 -   **Web Framework:** Streamlit
--   **Embeddings:** `sentence-transformers`
--   **Vector Search:** `scikit-learn` (Cosine Similarity)
+-   **Embeddings:** `sentence-transformers` — bi-encoder `BAAI/bge-small-en-v1.5`
+-   **Re-ranking:** `sentence-transformers` cross-encoder `cross-encoder/ms-marco-MiniLM-L-6-v2`
+-   **Vector Search:** `scikit-learn` (Cosine Similarity) for first-stage retrieval
 -   **LLM Backends (Configurable):**
     -   Google Gemini API (for Streamlit Cloud)
     -   Hugging Face `transformers` (for HF Spaces)
@@ -93,7 +95,7 @@ pip install -r requirements.txt
 ```bash
 python embed_data.py
 ```
-This script reads data/thirukkural_data.json, generates sentence embeddings, and saves them as kural_embeddings.npy and kural_metadata.pkl in the search_artifacts/ directory. You only need to run this once.
+This script reads data/thirukkural_data.json, builds a composite document per Kural (English explanation + couplet + chapter theme), generates sentence embeddings, and saves them as kural_embeddings.npy and kural_metadata.pkl in the search_artifacts/ directory. Re-run it whenever the dataset or the embedding model in src/config.py changes.
 
 
 ### 5) Configure the LLM Provider
@@ -180,7 +182,7 @@ thirukkural_semantic_search_engine/
     ├── __init__.py
     ├── config.py              # Central configuration
     ├── llm_services.py        # All LLM calls live here
-    └── search_logic.py        # Embedding + NumPy search pipeline
+    └── search_logic.py        # Two-stage retrieval: bi-encoder + cross-encoder re-ranker
 ```
 ---
 
@@ -207,7 +209,7 @@ thirukkural_semantic_search_engine/
 ## 🧰 Troubleshooting
 - **`ModuleNotFoundError`**: Confirm your virtual env is activated and deps are installed.
 - **`ImportError: numpy.core.multiarray failed to import`**: Your **`numpy`** version is likely too new. Ensure **`numpy<2.0`** is in your **`requirements.txt`** and reinstall dependencies in a clean virtual environment.
-- No search results: Ensure you have successfully run **`python embed_data.py`** and that the **`search_artifacts/`** directory and its files exist.
+- No search results: For an off-topic query this is expected — the relevance threshold filters weak matches. If *every* query returns nothing, ensure you have successfully run **`python embed_data.py`** and that the **`search_artifacts/`** directory and its files exist.
 - Slow first load: The initial download and loading of the language model can take a significant amount of time and memory. This is expected.
 
 ---

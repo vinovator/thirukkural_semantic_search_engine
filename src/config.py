@@ -14,9 +14,28 @@ METADATA_FILE = os.path.join(SEARCH_ARTIFACTS_PATH, "kural_metadata.pkl")
 # Note: You will also need to update this path in embed_data.py and search_logic.py
 
 # --- Model Configuration ---
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+# Bi-encoder used to embed both the corpus (embed_data.py) and the query
+# (search_logic.py). bge-small-en-v1.5 is a strong, small retrieval model.
+EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 
-# Suggestion 3: Removed old, commented-out GGUF model config.
+# bge/e5-family models expect a short instruction prefix on the *query* side only.
+# Documents are embedded without a prefix in embed_data.py.
+QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
+
+# --- Retrieval / Re-ranking Configuration ---
+# Cross-encoder that re-scores (query, candidate) pairs jointly for precision.
+RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+# Stage 1 (bi-encoder cosine) retrieves this many candidates...
+RETRIEVE_K = 15
+# ...stage 2 (cross-encoder) re-ranks and keeps this many.
+RERANK_TOP_K = 3
+# Candidates scoring below this cross-encoder logit are dropped. If none clear it,
+# the search returns no results (honest "no match" for off-topic queries).
+# The ms-marco cross-encoder outputs unbounded logits; on this archaic corpus,
+# genuine off-topic queries flatline around -11 while anything with a real
+# semantic connection scores >= -8, so -9.0 acts as a garbage gate that still
+# surfaces borderline matches. (Empirically calibrated — see plan.)
+RELEVANCE_THRESHOLD = -9.0
 
 # --- LLM Provider Switch ---
 # Suggestion 1: Implemented the "smart default" logic.
@@ -60,5 +79,5 @@ ABOUT_TEXT = os.getenv(
 )
 CONTACT_TEXT = os.getenv(
     "CONTACT_TEXT",
-    "Mail: <a href='mailto:hal.vinoth@yahoo.com'>hal.vinoth@yahoo.com</a> | [Github](https://github.com/vinovator/thirukkural_semantic_search_engine)"
+    "Mail: <a href='mailto:hal.vinoth@yahoo.com'>hal.vinoth@yahoo.com</a> | [Github](https://github.com/vinovator/thirukkural_semantic_search_engine) | [Website](https://vinothhaldorai.com/apps/)"
 )

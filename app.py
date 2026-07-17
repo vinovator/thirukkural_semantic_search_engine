@@ -43,7 +43,7 @@ st.markdown("Discover the timeless wisdom of Thirukkural that resonates with any
 
 query = st.text_input(
     "Enter a theme or topic in English that you want to explore in Thirukkural:",
-    placeholder="e.g., 'the importance of time management'"
+    placeholder="e.g., 'the value of true friendship'"
 )
 
 if st.button("Search for Wisdom", type="primary"):

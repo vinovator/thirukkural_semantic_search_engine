@@ -20,7 +20,20 @@ def main():
                        'explanation': 'kural_english_explanation',
                        'mv': 'kural_tamil_explanation'}, inplace=True)
     metadata = df.to_dict(orient='records')
-    documents_to_embed = df["kural_english_explanation"].tolist()
+
+    # Embed a composite document per Kural, combining the strongest English
+    # signals rather than the explanation alone: the gist (explanation), the
+    # poetic rendering (couplet), and the chapter theme (adhikaram). This gives
+    # the retriever more surface area to match a theme query against.
+    def build_document(row: dict) -> str:
+        parts = [
+            row.get("kural_english_explanation", ""),
+            row.get("couplet", ""),
+            row.get("adhikaram_translation_english", ""),
+        ]
+        return " ".join(str(p).strip() for p in parts if str(p).strip())
+
+    documents_to_embed = [build_document(row) for row in metadata]
 
     # --- 2. Generate and Save Embeddings ---
     print(f"Initializing embedding model: {EMBEDDING_MODEL}")
